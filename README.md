@@ -5,6 +5,7 @@ Microserviço responsável pelo gerenciamento de estoque de produtos.
 ## Pré-requisitos
 
 - .NET 9.0 SDK
+- Banco de dados SQLITE
 
 ## Como Executar
 
