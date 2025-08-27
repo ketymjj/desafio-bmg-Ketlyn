@@ -6,8 +6,6 @@ using Shared.Security.Interfaces;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Shared.Interface;
-using Shared.Models.PromocaoVendas;
-using Microsoft.Extensions.Logging;
 
 namespace StockService.SalesService.Controllers
 {
@@ -58,7 +56,7 @@ namespace StockService.SalesService.Controllers
         }
 
         // POST: api/orderitems
-      [HttpPost]
+        [HttpPost]
         [Authorize]
         public async Task<ActionResult<IEnumerable<OrderItem>>> AddOrderItems([FromBody] List<OrderItem> items)
         {
@@ -196,7 +194,7 @@ namespace StockService.SalesService.Controllers
         }
 
         // GET: api/orderitems/promocao/disponibilidade
-        [HttpGet("promocao/disponibilidade")]
+        [HttpGet("Promotion/Availability")]
         public async Task<ActionResult<int>> ObterDisponibilidadeiPhone()
         {
             try

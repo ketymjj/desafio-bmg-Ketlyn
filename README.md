@@ -18,10 +18,22 @@ O serviço estará disponível em: http://localhost:5202
 
 ## Endpoints Principais
 
+- `POST /api/Auth/register` - Para autenticar o usuário
+- `POST /api/Auth/login` - Para autenticar o usuário 
+
 - `GET /api/products` - Lista todos os produtos
 - `GET /api/products/{id}` - Obtém um produto específico
 - `POST /api/products` - Cria um novo produto
 - `PUT /api/products/{id}` - Atualiza um produto
+
+- POST `/api/Orders`  - Criar uma nova Order
+- GET  `/api/Orders`  - Lista todos as Order
+- GET  `/api/Orders/{id}` - Obtém uma Order específica
+
+- POST `/api/OrderItems`  - Criar novos Itens Order
+- DELITE  `/api/OrderItems/{id}`  - Deletar algum dos Itens
+- GET  `/api/OrderItems/{id}` - Obtém os Itens da Order específica 
+- GET `api/OrderItems/Promotion/Availability` - Obtém quantos itens está disponivel na promoção
 
 
 ## Migrações do Banco de Dados
@@ -37,6 +49,6 @@ dotnet ef database update
 ```mermaid
 graph TD
     A[StockService] --> B[(SQL Server)]
-    C --> D[SalesService]
-    C --> E[NotificationService]
+    B --> C[SalesService]
+    B --> D[NotificationService]
 ```
