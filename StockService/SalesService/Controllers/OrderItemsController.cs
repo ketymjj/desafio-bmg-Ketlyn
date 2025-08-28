@@ -30,22 +30,36 @@ namespace StockService.SalesService.Controllers
             _promocaoService = promocaoService;
         }
 
-        // GET: api/orderitems/{orderId}
+       // GET: api/orderitems/{orderId}
         [HttpGet("{orderId}")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<OrderItem>>> GetItemsByOrder(int orderId)
         {
             var principal = ValidateRequestToken();
             if (principal == null)
                 return Unauthorized("Token inválido ou não informado");
-
+        
+            // Obtém o Id do usuário logado do token (claim "sub" ou "nameidentifier")
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("Usuário não identificado no token");
+        
             try
             {
+                // Verifica se o pedido realmente pertence ao usuário logado
+                var order = await _context.Orders
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(o => o.Id == orderId);
+        
+                if (order == null)
+                    return NotFound("Pedido não encontrado para este usuário.");
+        
                 var items = await _context.OrderItems
                     .Include(i => i.Product)
                     .Where(i => i.OrderId == orderId)
                     .AsNoTracking()
                     .ToListAsync();
-
+        
                 return Ok(items);
             }
             catch (Exception ex)
