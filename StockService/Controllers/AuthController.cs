@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shared.Data;
-using Shared.Models;
 using Shared.Models.AuthUser;
 using Shared.Security.Interfaces;
 
@@ -26,15 +25,16 @@ public class AuthController : ControllerBase
     // ----------------------
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<IActionResult> Register([FromBody] LoginModel model)
+    public async Task<IActionResult> Register([FromBody] UserModel model)
     {
-        if (await _context.Users.AnyAsync(u => u.Username == model.Username))
-            return BadRequest("Usuário já existe.");
+          if (await _context.Users.AnyAsync(u => u.Username == model.Username))
+             return BadRequest(new { message = "Usuário já existe." }); // JSON
+     
 
         var user = new UserModel
         {
             Username = model.Username,
-            Role = "User"
+            Role = model.Role
         };
 
         // Hash seguro da senha
@@ -43,7 +43,7 @@ public class AuthController : ControllerBase
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return Ok("Usuário registrado com sucesso.");
+        return Ok(new { message = "Registro efetuado com sucesso!" }); // JSON
     }
 
     // ----------------------

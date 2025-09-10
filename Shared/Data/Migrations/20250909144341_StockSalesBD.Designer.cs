@@ -11,7 +11,7 @@ using Shared.Data;
 namespace Shared.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250827021450_StockSalesBD")]
+    [Migration("20250909144341_StockSalesBD")]
     partial class StockSalesBD
     {
         /// <inheritdoc />
@@ -109,6 +109,11 @@ namespace Shared.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");

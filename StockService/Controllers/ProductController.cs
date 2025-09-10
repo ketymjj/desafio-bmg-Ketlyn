@@ -5,6 +5,7 @@ using Shared.Data;
 using System.Security.Claims;
 using Shared.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using StockService.ModelDto;
 
 namespace StockService.Controllers
 {
@@ -66,7 +67,7 @@ namespace StockService.Controllers
         // Cria um novo produto (requer autenticação)
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<Product>> PostProduct([FromBody] Product product)
+        public async Task<ActionResult<Product>> PostProduct([FromForm] ProductCreateDto dto)
         {
             try
             {
@@ -77,6 +78,34 @@ namespace StockService.Controllers
 
                 // Validação do modelo
                 if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                // Salvar imagem no servidor
+               string? imagePath = null;
+               if (dto.Image != null && dto.Image.Length > 0)
+               {
+                   var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                   if (!Directory.Exists(uploadsFolder))
+                       Directory.CreateDirectory(uploadsFolder);
+       
+                   var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
+                   var filePath = Path.Combine(uploadsFolder, fileName);
+       
+                   using (var stream = new FileStream(filePath, FileMode.Create))
+                   {
+                       await dto.Image.CopyToAsync(stream);
+                   }
+       
+                   imagePath = "/images/" + fileName; // URL relativa
+               }
+
+                var product = new Product
+               {
+                   Name = dto.Name,
+                   Description = dto.Description,
+                   Price = dto.Price,
+                   StockQuantity = dto.StockQuantity,
+                   ImageUrl = imagePath // precisa ter essa coluna na tabela Product
+               };
 
                 // Adiciona o produto ao banco
                 _context.Products.Add(product);
@@ -100,7 +129,7 @@ namespace StockService.Controllers
         // Atualiza um produto existente (requer autenticação)
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> PutProduct(int id, [FromBody] Product product)
+       public async Task<IActionResult> PutProduct(int id, [FromForm] ProductCreateDto dto)
         {
             try
             {
@@ -109,17 +138,39 @@ namespace StockService.Controllers
                 if (principal == null)
                     return Unauthorized("Token inválido ou não informado");
 
-                // Valida se o ID da rota corresponde ao do produto enviado
-                if (id != product.Id) return BadRequest("ID do produto não corresponde");
-                if (!ModelState.IsValid) return BadRequest(ModelState);
-
                 // Busca o produto no banco
                 var existingProduct = await _context.Products.FindAsync(id);
                 if (existingProduct == null) return NotFound();
 
+                 // Atualizar dados
+                existingProduct.Name = dto.Name;
+                existingProduct.Price = dto.Price;
+                existingProduct.StockQuantity = dto.StockQuantity;
+                existingProduct.UpdatedAt = DateTime.UtcNow;
+
                 // Atualiza os valores do produto
                 var oldStock = existingProduct.StockQuantity; // exemplo de captura de valor antigo (pode ser usado em auditoria)
-                _context.Entry(existingProduct).CurrentValues.SetValues(product);
+
+              // Se enviou nova imagem, sobrescreve
+                if (dto.Image != null && dto.Image.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await dto.Image.CopyToAsync(stream);
+                    }
+
+                    existingProduct.ImageUrl = "/images/" + fileName;
+                }
+
+
+                _context.Entry(existingProduct).CurrentValues.SetValues(dto);
                 await _context.SaveChangesAsync();
 
                 // Captura o ID do usuário autenticado
@@ -129,14 +180,52 @@ namespace StockService.Controllers
                 // Retorna 204 NoContent (atualização feita com sucesso, sem corpo na resposta)
                 return NoContent();
             }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                _logger.LogError(ex, $"Conflito ao atualizar produto {id}");
-                return StatusCode(409, "Conflito de concorrência detectado");
-            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erro ao atualizar produto {id}");
+                return StatusCode(500, "Erro interno ao processar a requisição");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            try
+            {
+                var principal = ValidateRequestToken();
+                if (principal == null)
+                    return Unauthorized("Token inválido ou não informado");
+        
+                var existingProduct = await _context.Products.FindAsync(id);
+                if (existingProduct == null) return NotFound();
+        
+                // Se tiver imagem salva, apaga do disco também
+                if (!string.IsNullOrEmpty(existingProduct.ImageUrl))
+                {
+                    var imagePath = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        existingProduct.ImageUrl.TrimStart('/')
+                    );
+        
+                    if (System.IO.File.Exists(imagePath))
+                    {
+                        System.IO.File.Delete(imagePath);
+                    }
+                }
+        
+                _context.Products.Remove(existingProduct);
+                await _context.SaveChangesAsync();
+        
+                var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                _logger.LogInformation($"Produto {id} deletado pelo usuário {userId}");
+        
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erro ao deletar produto {id}");
                 return StatusCode(500, "Erro interno ao processar a requisição");
             }
         }

@@ -162,3 +162,5 @@ C:\ProjetosEmpresas\desafio-bmg-Ketlyn\stockservice\obj\Debug\net9.0\refint\Stoc
 C:\ProjetosEmpresas\desafio-bmg-Ketlyn\stockservice\obj\Debug\net9.0\StockService.pdb
 C:\ProjetosEmpresas\desafio-bmg-Ketlyn\stockservice\obj\Debug\net9.0\StockService.genruntimeconfig.cache
 C:\ProjetosEmpresas\desafio-bmg-Ketlyn\stockservice\obj\Debug\net9.0\ref\StockService.dll
+C:\ProjetosEmpresas\desafio-bmg-Ketlyn\stockservice\obj\Debug\net9.0\StockService.sourcelink.json
+C:\ProjetosEmpresas\desafio-bmg-Ketlyn\stockservice\bin\Debug\net9.0\StockService.staticwebassets.runtime.json

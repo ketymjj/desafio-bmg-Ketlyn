@@ -88,52 +88,47 @@ namespace StockService.SalesService.Controllers
         [Authorize] // Exige autenticação
         [ProducesResponseType(StatusCodes.Status201Created)] // Resposta 201 se criado
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // Resposta 400 se dados inválidos
-        public async Task<ActionResult<IEnumerable<Order>>> PostOrder([FromBody] List<Order> orders)
+        public async Task<ActionResult<Order>> PostOrder([FromBody] Order order)
         {
             // 🔑 Valida token da requisição
-            var principal = ValidateRequestToken();
+           var principal = ValidateRequestToken();
             if (principal == null)
                 return Unauthorized("Token inválido ou não informado");
-
+        
             try
             {
-                // Verifica se o modelo recebido é válido
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
-
-                // Itera sobre cada pedido recebido e salva no banco
-                foreach (var order in orders)
+        
+                // Criar pedido no banco
+                var orderToSave = new Order
                 {
-                    var orderToSave = new Order
-                    {
-                        CustomerId = order.CustomerId,
-                        TotalAmount = order.TotalAmount,
-                        OrderDate = DateTime.UtcNow // Data de criação é sempre UTC
-                    };
-
-                    _context.Orders.Add(orderToSave);
-                    await _context.SaveChangesAsync();
-
-                    // Criação de um evento (pode ser usado para mensageria futuramente)
-                    var orderCreatedEvent = new
-                    {
-                        OrderId = orderToSave.Id,
-                        CustomerId = orderToSave.CustomerId,
-                        TotalAmount = orderToSave.TotalAmount
-                    };
-
-                    // Loga informação de criação
-                    _logger.LogInformation($"Pedido {orderToSave.Id} criado com sucesso");
-                }
-
-                // Retorna Created (201) com os pedidos enviados
-                return Created("api/orders", orders);
+                    CustomerId = order.CustomerId,
+                    TotalAmount = order.TotalAmount,
+                    OrderDate = DateTime.UtcNow
+                };
+        
+                _context.Orders.Add(orderToSave);
+                await _context.SaveChangesAsync();
+        
+                // Publicar evento
+                var orderCreatedEvent = new
+                {
+                    OrderId = orderToSave.Id,
+                    CustomerId = orderToSave.CustomerId,
+                    TotalAmount = orderToSave.TotalAmount
+                };
+        
+                _logger.LogInformation($"Pedido {orderToSave.Id} criado com sucesso");
+        
+                // Retorna o pedido salvo, com ID
+                return CreatedAtAction(nameof(GetOrder), new { id = orderToSave.Id }, orderToSave);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao criar pedidos");
+                _logger.LogError(ex, "Erro ao criar pedido");
                 return StatusCode(500, "Erro interno ao processar o pedido");
             }
         }

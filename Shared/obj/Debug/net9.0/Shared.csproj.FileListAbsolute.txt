@@ -27,3 +27,4 @@ C:\ProjetosEmpresas\desafio-bmg-Ketlyn\Shared\obj\Debug\net9.0\refint\Shared.dll
 C:\ProjetosEmpresas\desafio-bmg-Ketlyn\Shared\obj\Debug\net9.0\Shared.pdb
 C:\ProjetosEmpresas\desafio-bmg-Ketlyn\Shared\obj\Debug\net9.0\Shared.genruntimeconfig.cache
 C:\ProjetosEmpresas\desafio-bmg-Ketlyn\Shared\obj\Debug\net9.0\ref\Shared.dll
+C:\ProjetosEmpresas\desafio-bmg-Ketlyn\Shared\obj\Debug\net9.0\Shared.sourcelink.json

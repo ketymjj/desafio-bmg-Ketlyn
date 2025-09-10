@@ -37,7 +37,8 @@ namespace Shared.Data.Migrations
                     Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     StockQuantity = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 0),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    ImageUrl = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false)
                 },
                 constraints: table =>
                 {
